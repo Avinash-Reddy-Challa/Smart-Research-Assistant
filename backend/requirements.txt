@@ -1,12 +1,14 @@
-# backend/requirements.txt
-fastapi
-uvicorn
-python-multipart
-langchain
-langchain-core
-langchain-community
-pypdf
-faiss-cpu
-tiktoken
-python-dotenv
-requests  # Added for API calls to Grok
+fastapi>=0.110.0
+uvicorn>=0.28.0
+python-multipart>=0.0.7
+langchain>=0.1.13
+langchain-community>=0.0.19
+faiss-cpu>=1.7.4
+python-dotenv>=1.0.1
+PyPDF2>=3.0.1
+pymupdf>=1.23.25
+aiofiles>=23.2.1
+httpx>=0.26.0
+pydantic>=2.6.3
+numpy>=1.26.0
+python-dotenv>=1.0.1

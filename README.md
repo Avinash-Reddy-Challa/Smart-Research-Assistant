@@ -29,6 +29,10 @@ An AI-powered document analysis tool that uses **LangChain** and **RAG (Retrieva
 - **React Dropzone**: Drag-and-drop file upload
 - **Axios**: HTTP client for API requests
 
+### DevOps
+- **Docker**: Containerization for consistent deployments
+- **Docker Compose**: Multi-container orchestration
+
 ## 📦 LangChain Integration Details
 
 ### Core LangChain Components Used
@@ -92,8 +96,11 @@ graph TD
 - Python 3.8+
 - Node.js 18+
 - Groq API key
+- Docker and Docker Compose (for containerized setup)
 
-### Backend Setup
+### Option 1: Standard Setup
+
+#### Backend Setup
 
 1. **Navigate to backend directory**
    ```bash
@@ -124,7 +131,7 @@ graph TD
    uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
 
-### Frontend Setup
+#### Frontend Setup
 
 1. **Navigate to frontend directory**
    ```bash
@@ -141,10 +148,37 @@ graph TD
    npm run dev
    ```
 
-4. **Access the application**
+### Option 2: Docker Setup
+
+1. **Create `.env` file in the project root**
+   ```bash
+   # Create .env file
+   echo "GROK_API_KEY=your_groq_api_key_here" > .env
+   ```
+
+2. **Build and start the Docker containers**
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Access the application**
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
+
+4. **View logs (optional)**
+   ```bash
+   # View all logs
+   docker-compose logs -f
+
+   # View only backend logs
+   docker-compose logs -f backend
+   ```
+
+5. **Stop the containers when done**
+   ```bash
+   docker-compose down
+   ```
 
 ## 🔑 Environment Configuration
 
@@ -207,15 +241,59 @@ smart-research-assistant/
 │   │   └── utils/
 │   │       ├── grok_integration.py    # Custom Groq LLM integration
 │   │       └── error_handler.py       # Error handling utilities
+│   ├── Dockerfile                # Docker configuration for backend
 │   ├── requirements.txt          # Python dependencies
 │   └── .env                     # Environment variables
-└── frontend/
-    ├── src/
-    │   ├── app/                 # Next.js App Router
-    │   ├── components/          # React components
-    │   └── lib/                # Utility functions
-    ├── package.json            # Node.js dependencies
-    └── tailwind.config.js     # Tailwind configuration
+├── frontend/
+│   ├── src/
+│   │   ├── app/                 # Next.js App Router
+│   │   ├── components/          # React components
+│   │   └── lib/                # Utility functions
+│   ├── Dockerfile              # Docker configuration for frontend
+│   ├── package.json            # Node.js dependencies
+│   └── tailwind.config.js     # Tailwind configuration
+├── docker-compose.yml         # Docker Compose configuration
+└── .env                       # Environment variables for Docker
+```
+
+## 🐳 Docker Configuration
+
+The application is containerized using Docker with separate containers for the backend and frontend:
+
+### Docker Compose Services
+
+- **Backend Container**:
+  - Python 3.10-based FastAPI service
+  - Auto-reload for development
+  - Persistent volume for uploaded files
+  - Health checks for reliability
+
+- **Frontend Container**:
+  - Node.js 18-based Next.js application
+  - Optimized production build
+  - Communication with backend API
+  - Health checks for reliability
+
+### Managing Docker Deployment
+
+**Rebuilding after code changes**:
+```bash
+docker-compose up -d --build
+```
+
+**Checking container status**:
+```bash
+docker-compose ps
+```
+
+**Viewing container logs**:
+```bash
+docker-compose logs -f
+```
+
+**Stopping and removing containers**:
+```bash
+docker-compose down
 ```
 
 ## 🎯 Key LangChain Features Implemented
