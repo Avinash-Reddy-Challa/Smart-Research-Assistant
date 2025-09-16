@@ -22,7 +22,7 @@ class GrokChatModel(BaseChatModel):
     """Chat model for Grok AI API."""
 
     api_key: str
-    model_name: str = "mixtral-8x7b-32768"  # Updated to the correct model
+    model_name: str = "llama-3.1-8b-instant"  # Updated to a model that is available
     temperature: float = 0.7
     max_tokens: Optional[int] = None
     base_url: str = "https://api.groq.com/openai/v1"
@@ -72,11 +72,31 @@ class GrokChatModel(BaseChatModel):
             if self.model_name not in available_models:
                 # Try to find a suitable alternative
                 logger.warning(f"Model {self.model_name} not found. Available models: {available_models}")
-                for model in available_models:
-                    if "mixtral" in model.lower():
+                
+                # Try to find one of these models in order of preference
+                preferred_models = [
+                    "llama-3.1-8b-instant",
+                    "llama-3.3-70b-versatile", 
+                    "gemma2-9b-it",
+                    "qwen/qwen3-32b",
+                    "openai/gpt-oss-20b"
+                ]
+                
+                for model in preferred_models:
+                    if model in available_models:
                         self.model_name = model
                         logger.info(f"Using alternative model: {self.model_name}")
                         return True
+                
+                # If none of the preferred models are available, use the first available model
+                if available_models:
+                    # Skip whisper models as they're for speech-to-text
+                    text_models = [m for m in available_models if not m.startswith("whisper")]
+                    if text_models:
+                        self.model_name = text_models[0]
+                        logger.info(f"Using first available text model: {self.model_name}")
+                        return True
+                
                 return False
             
             return True

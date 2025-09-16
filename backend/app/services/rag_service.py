@@ -5,7 +5,6 @@ from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 from app.services.document_processor import document_processor
 from app.utils.grok_integration import GrokChatModel
-from langchain_groq import ChatGroq
 
 
 # Configure logging
@@ -14,13 +13,17 @@ logger = logging.getLogger(__name__)
 
 class RAGService:
     def __init__(self):
+        try:
             # Try to use Grok chat model
-        self.llm = GrokChatModel(
-            api_key=os.environ.get("GROK_API_KEY"),
-            model_name="mixtral-8x7b-32768",
-            temperature=0.1
-        )
-        logger.info("Using GrokChatModel")
+            self.llm = GrokChatModel(
+                api_key=os.environ.get("GROK_API_KEY"),
+                model_name="llama-3.1-8b-instant",  # Updated to a model likely available
+                temperature=0.1
+            )
+            logger.info("Using GrokChatModel")
+        except Exception as e:
+            logger.error(f"Failed to initialize GrokChatModel: {str(e)}")
+            # No fallback needed as GrokChatModel has its own internal fallback
             
         self.qa_prompt_template = """
         You are a helpful AI research assistant. Use the following pieces of context to answer the question at the end.

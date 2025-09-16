@@ -5,6 +5,7 @@ import logging
 import traceback
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from app.services.document_processor import document_processor
+from app.services.rag_service import rag_service  # Add this import
 
 
 router = APIRouter(
