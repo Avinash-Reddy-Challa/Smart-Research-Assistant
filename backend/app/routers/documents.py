@@ -3,9 +3,10 @@ import os
 import shutil
 import logging
 import traceback
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+import asyncio
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks
 from app.services.document_processor import document_processor
-from app.services.rag_service import rag_service  # Add this import
+from app.services.rag_service import rag_service
 
 
 router = APIRouter(
@@ -21,8 +22,23 @@ logger = logging.getLogger(__name__)
 # Create uploads directory if it doesn't exist
 os.makedirs("uploads", exist_ok=True)
 
+# Function to process document in background
+async def process_document_task(file_path, filename):
+    """Process document in background"""
+    try:
+        logger.info(f"Background task: Processing document {filename}")
+        result = document_processor.process_pdf(file_path, filename)
+        logger.info(f"Background task completed for {filename}: {result}")
+        return result
+    except Exception as e:
+        logger.error(f"Error in background task: {str(e)}")
+        logger.error(traceback.format_exc())
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        return {"success": False, "error": str(e)}
+
 @router.post("/upload")
-async def upload_document(file: UploadFile = File(...)):
+async def upload_document(file: UploadFile = File(...), background_tasks: BackgroundTasks = None):
     """Upload a document (PDF) for processing"""
     if not file.filename.lower().endswith('.pdf'):
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
@@ -37,9 +53,20 @@ async def upload_document(file: UploadFile = File(...)):
         
         # Check file size
         file_size = os.path.getsize(file_path)
-        logger.info(f"File size: {file_size / (1024*1024):.2f} MB")
+        file_size_mb = file_size / (1024*1024)
+        logger.info(f"File size: {file_size_mb:.2f} MB")
         
-        # Process the document
+        # For large files (> 10MB), process in background
+        if file_size_mb > 10 and background_tasks:
+            logger.info(f"Large file detected ({file_size_mb:.2f} MB). Processing in background.")
+            background_tasks.add_task(process_document_task, file_path, file.filename)
+            return {
+                "success": True, 
+                "status": "processing",
+                "message": f"Large file ({file_size_mb:.2f} MB) is being processed in the background. Please check back in a few moments."
+            }
+        
+        # For smaller files, process synchronously
         result = document_processor.process_pdf(file_path, file.filename)
         
         if not result.get("success", False):

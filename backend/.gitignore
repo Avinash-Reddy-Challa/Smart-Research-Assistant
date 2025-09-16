@@ -114,3 +114,5 @@ env/
 ENV/
 .venv/
 .env
+
+uploads
